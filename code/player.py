@@ -28,9 +28,11 @@ class Player(pygame.sprite.Sprite):
         
     def input(self):
         keys = pygame.key.get_pressed()
-        self.direction.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
-        self.direction.y = int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP])
+        self.direction.x = int(keys[pygame.K_RIGHT] or keys[pygame.K_d]) - int(keys[pygame.K_LEFT] or keys[pygame.K_a])
+        self.direction.y = int(keys[pygame.K_DOWN] or keys[pygame.K_s]) - int(keys[pygame.K_UP] or keys[pygame.K_w])
         self.direction = self.direction.normalize() if self.direction else self.direction
+        
+
     
     def move(self,dt):
         self.hitbox_rect.x += self.direction.x * self.speed * dt
@@ -71,14 +73,3 @@ class Player(pygame.sprite.Sprite):
         self.animate(dt)
         
     
-class AnimatedWalk(pygame.sprite.Sprite):
-    def __init__(self, frames,pos,groups) -> None:
-        super().__init__(groups)
-        self.frames = frames
-        self.frame_index = 0 
-        self.image = self.frames[self.frame_index]
-        self.rect = self.image.get_frect(center=pos)
-        
-    def update(self,dt ) -> None:
-        
-        return super().update()
