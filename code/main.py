@@ -3,6 +3,11 @@ from settings import *
 from player import Player
 from sprite import *
 from random import randint
+from pytmx.util_pygame import load_pygame
+from groups import AllSprites
+
+
+
 class Game:
     
     def __init__(self,game_name:str,width:int,height:int,running:bool) -> None:
@@ -14,16 +19,37 @@ class Game:
         self.clock = pygame.time.Clock()
         
         # sprites groups
-        self.all_sprites = pygame.sprite.Group()
+        self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
-        
+        self.setup()
         # sprites
-        self.player = Player((WINDOW_WIDTH/2,WINDOW_HEIGHT/2),self.all_sprites,self.collision_sprites)
-        for i in range(6):
-            x, y = randint(0,WINDOW_WIDTH), randint(0,WINDOW_HEIGHT)
-            w, h = randint(60,100),randint(50,100)
-            CollisionSprite(pos=(x,y),size=(w,h),groups=(self.all_sprites,self.collision_sprites))
+        
 
+            
+        
+            
+    def setup(self):
+        map = load_pygame(join('data','maps','world.tmx'))
+
+            
+        for x, y , image in map.get_layer_by_name('Ground').tiles():
+            Sprite((x * TILE_SIZE,y * TILE_SIZE),image,(self.all_sprites))
+            
+        for obj in map.get_layer_by_name('Objects'):
+            CollisionSprite((obj.x,obj.y),obj.image,(self.all_sprites,self.collision_sprites))
+            
+        for col in map.get_layer_by_name('Collisions'):
+            InvisibleCollision((col.x,col.y),(col.width,col.height),(self.collision_sprites))
+            
+            
+        for obj in map.get_layer_by_name('Entities'):
+            if obj.name == 'Player':
+                self.player = Player((obj.x,obj.y),self.all_sprites,self.collision_sprites)
+                
+                
+            
+            
+            
     def run(self):
 
 
@@ -44,7 +70,7 @@ class Game:
                     
             # Draw The Game
             self.display_surface.fill('#3a2e3f')
-            self.all_sprites.draw(self.display_surface)
+            self.all_sprites.draw(self.player.rect.center)
             
             # Update The Display
             pygame.display.update()
