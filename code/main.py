@@ -35,6 +35,15 @@ class Game:
         self.spawn_positions = []
         
         
+        # audio 
+        self.shooting_sound = pygame.mixer.Sound(join('audio','shoot.wav'))
+        self.shooting_sound.set_volume(0.4)
+        self.game_music_sound = pygame.mixer.Sound(join('audio','music.wav'))
+        self.impact_sound = pygame.mixer.Sound(join('audio','impact.ogg'))
+        
+        self.game_music_sound.play(loops=-1)
+        self.game_music_sound.set_volume(0.3)
+        
         # setup
         self.load_images()
         self.setup()
@@ -54,11 +63,39 @@ class Game:
                     full_path = join(folder_path,file_name)
                     enemy_surf =pygame.image.load(full_path).convert_alpha()
                     self.enemy_frames[folder].append(enemy_surf)
+
+    # def collisions(self):
+    #     collisions_sprites = pygame.sprite.spritecollide(self.player,self.enemy_sprites,True,pygame.sprite.collide_mask)
+    #     if collisions_sprites:
+    #         self.running = False 
         
+    #     for enemy in self.enemy_sprites:
+    #         collided_sprites = pygame.sprite.spritecollide(enemy,self.bullet_sprites,True,pygame.sprite.collide_mask)
+    #         if collided_sprites:
+    #             enemy.kill()
+    #             self.impact_sound.play()
+    
+    def player_collisions(self):
+        collisions_sprites = pygame.sprite.spritecollide(self.player,self.enemy_sprites,False,pygame.sprite.collide_mask)
+        if collisions_sprites:
+            self.running = False 
             
+    def bullet_collision(self):
+        if self.bullet_sprites:
+            for bullet in self.bullet_sprites:
+                collision_sprites = pygame.sprite.spritecollide(bullet,self.enemy_sprites,False,pygame.sprite.collide_mask)            
+                if collision_sprites:
+                    self.impact_sound.play()
+                    for sprite in collision_sprites:
+                        sprite.destroy()
+                        
+                        
+                    bullet.kill()
+    
     def input(self):
         recent_keys = pygame.mouse.get_just_pressed()
-        if recent_keys[2] and self.can_shoot:
+        if recent_keys[0] and self.can_shoot:
+            self.shooting_sound.play()
             pos = self.gun.rect.center + self.gun.player_direction * 50
             Bullet(self.bullet_surf,pos,self.gun.player_direction,(self.all_sprites,self.bullet_sprites))
             
@@ -119,6 +156,8 @@ class Game:
             self.gun_timer()
             self.input()
             self.all_sprites.update(dt)
+            self.bullet_collision()
+            self.player_collisions()
                     
             # Draw The Game
             self.display_surface.fill('#3a2e3f')
